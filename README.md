@@ -1,4 +1,4 @@
-# 🚀 Carpe Diem – Automated Insight Analyst
+# 🚀 Clarion Data – Automated Insight Analyst
 
 > **Transforming raw spreadsheet datasets into actionable domain intelligence, machine learning forecasts, smart visualizations, and AI-powered insights in seconds.**
 
@@ -25,13 +25,13 @@ Organizations and teams generate massive amounts of spreadsheet-style data every
 
 This creates a high technical barrier, making analytical discovery **slow, error-prone, and inaccessible** for non-technical stakeholders and business teams.
 
-**Carpe Diem** solves this problem by automating the entire data discovery lifecycle — taking any raw CSV or spreadsheet dataset and instantly generating structural audits, statistical summaries, predictive forecasts, recommended visualizations, anomaly alerts, and fact-grounded natural language insights.
+**Clarion Data** solves this problem by automating the entire data discovery lifecycle — taking any raw CSV or spreadsheet dataset and instantly generating structural audits, statistical summaries, predictive forecasts, recommended visualizations, anomaly alerts, and fact-grounded natural language insights.
 
 ---
 
 ## 💡 Solution
 
-Carpe Diem is an **end-to-end intelligent data analysis platform** that bridges the gap between raw data and decision-making.
+Clarion Data is an **end-to-end intelligent data analysis platform** that bridges the gap between raw data and decision-making.
 
 ```text
 Upload Dataset
@@ -129,7 +129,7 @@ flowchart TD
 ## 📁 Project Structure
 
 ```
-Carpe-Diem/
+clarion-data/
 ├── api/                           # FastAPI REST route controllers
 │   ├── person1_api.py             # Core analytical endpoints (Upload, Stats, Schema, Cleaning)
 │   ├── clustering_api.py          # Machine learning clustering endpoints
@@ -334,9 +334,9 @@ SUPABASE_KEY=your_supabase_anon_or_service_key
 
 ---
 
-## 🌟 Why Carpe Diem?
+## 🌟 Why Clarion Data?
 
-Data science should not be confined to data scientists alone. **Carpe Diem** democratizes advanced analytics by eliminating the barrier between raw spreadsheets and executive decision-making. 
+Data science should not be confined to data scientists alone. **Clarion Data** democratizes advanced analytics by eliminating the barrier between raw spreadsheets and executive decision-making. 
 
 Without writing a single line of Python or SQL, any user can upload an unknown dataset and receive:
 1. **Accurate Statistical Audits** — Zero ambiguity regarding data cleanliness or schema types.
@@ -365,8 +365,8 @@ This project is licensed under the **MIT License** — see the [LICENSE](LICENSE
 
 <div align="center">
 
-> 🚀 **Carpe Diem — Transforming Raw Data into Intelligent Decisions.**
+> 🚀 **Clarion Data — Transforming Raw Data into Intelligent Decisions.**
 
-**Made with 💻, AI, and teamwork by the Carpe Diem Team.**
+**Made with 💻, AI, and teamwork by the Clarion Data Team.**
 
 </div>
