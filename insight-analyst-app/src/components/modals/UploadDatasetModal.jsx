@@ -197,9 +197,9 @@ export const UploadDatasetModal = () => {
             onDragOver={handleDrag}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`border-2 border-dashed p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
+            className={`border-2 border-dashed p-6 flex flex-col items-center justify-center gap-2.5 cursor-pointer transition-all ${
               dragActive
-                ? 'border-primary bg-primary-container/20 scale-[1.01]'
+                ? 'border-primary bg-primary-container/30 scale-[1.01]'
                 : 'border-outline-variant/60 hover:border-primary/80 bg-surface-container-lowest'
             }`}
           >
@@ -207,19 +207,30 @@ export const UploadDatasetModal = () => {
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
               onChange={handleChange}
               className="hidden"
             />
-            <div className="w-11 h-11 bg-primary-container/50 border border-primary/40 flex items-center justify-center rounded-sm">
+            <div className="w-12 h-12 bg-primary-container/60 border border-primary/50 flex items-center justify-center rounded-sm shadow-sm">
               <span className="material-symbols-outlined text-primary text-2xl">cloud_upload</span>
             </div>
-            <div className="text-center">
+            <div className="text-center flex flex-col items-center gap-1">
               <p className="text-xs font-semibold text-on-surface">
-                Click to browse or drop multiple files here
+                Drag & drop your dataset here, or click to browse
               </p>
-              <p className="text-[11px] text-outline mt-0.5">
-                Upload up to {MAX_FILE_COUNT.toLocaleString()} CSV or Excel workbooks (up to {MAX_FILE_SIZE_GB}GB each)
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
+                className="mt-1 px-3 py-1 bg-primary text-on-primary text-xs font-semibold hover:bg-primary-fixed-dim transition-colors rounded-sm shadow-sm flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[15px]">folder_open</span>
+                <span>Browse Files</span>
+              </button>
+              <p className="text-[11px] text-outline mt-1">
+                Supports CSV or Excel (.xlsx, .xls) up to {MAX_FILE_SIZE_GB}GB
               </p>
             </div>
           </div>
@@ -346,14 +357,28 @@ export const UploadDatasetModal = () => {
             Cancel
           </button>
           <button
-            onClick={handleUpload}
-            disabled={isUploading || selectedFiles.length === 0}
-            className="px-5 py-1.5 bg-primary text-on-primary font-semibold text-xs font-headline-sm hover:bg-primary-fixed-dim transition-colors flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
+            onClick={() => {
+              if (selectedFiles.length === 0) {
+                fileInputRef.current?.click();
+              } else {
+                handleUpload();
+              }
+            }}
+            disabled={isUploading}
+            className="px-5 py-1.5 bg-primary text-on-primary font-semibold text-xs font-headline-sm hover:bg-primary-fixed-dim transition-colors flex items-center gap-1.5 disabled:opacity-40 cursor-pointer shadow-sm active:scale-95"
           >
             <span className="material-symbols-outlined text-[16px]">
-              {isUploading ? 'sync' : 'upload'}
+              {isUploading ? 'sync' : (selectedFiles.length === 0 ? 'folder_open' : 'upload')}
             </span>
-            <span>{isUploading ? 'Ingesting...' : `Upload & Ingest ${selectedFiles.length > 0 ? `(${selectedFiles.length.toLocaleString()})` : ''}`}</span>
+            <span>
+              {isUploading
+                ? 'Ingesting...'
+                : (selectedFiles.length === 0
+                    ? 'Select File to Upload'
+                    : `Upload & Ingest (${selectedFiles.length.toLocaleString()})`
+                  )
+              }
+            </span>
           </button>
         </div>
       </div>
