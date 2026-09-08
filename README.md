@@ -231,8 +231,8 @@ clarion-data/
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/shravanmali/Carpe-Diem.git
-cd Carpe-Diem
+git clone https://github.com/gharatved41-oss/Clarion-Data.git
+cd Clarion-Data
 ```
 
 ### 2. Backend Setup
@@ -349,7 +349,7 @@ Without writing a single line of Python or SQL, any user can upload an unknown d
 
 Contributions are welcome! If you would like to contribute:
 
-1. Fork the repository (`https://github.com/shravanmali/Carpe-Diem.git`).
+1. Fork the repository (`https://github.com/gharatved41-oss/Clarion-Data.git`).
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
 3. Commit your changes (`git commit -m 'feat: Add some AmazingFeature'`).
 4. Push to the branch (`git push origin feature/AmazingFeature`).
