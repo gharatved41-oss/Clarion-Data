@@ -143,9 +143,11 @@ const MainContent = () => {
 
 export function App() {
   return (
-    <TelemetryProvider>
-      <MainContent />
-    </TelemetryProvider>
+    <ViewErrorBoundary>
+      <TelemetryProvider>
+        <MainContent />
+      </TelemetryProvider>
+    </ViewErrorBoundary>
   );
 }
 
