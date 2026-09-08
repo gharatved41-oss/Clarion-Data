@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Insight Analyst - AI Data Platform & Developer Interface</title>
+    <!-- Plotly.js for interactive chart visualization -->
+    <script src="https://cdn.plot.ly/plotly-2.29.0.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --panel-bg: #111827;
+            --card-bg: #1f2937;
+            --accent-color: #38bdf8;
+            --accent-hover: #0284c7;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-color: #f9fafb;
+            --muted-text: #9ca3af;
+            --border-color: #374151;
+            --ai-bubble-bg: #1e293b;
+            --user-bubble-bg: #0369a1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 16px;
+            box-sizing: border-box;
+        }
+
+        header {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .header-title h1 {
+            font-size: 1.5rem;
+            margin: 0;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-color);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            padding: 4px 10px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .toggle-chat-btn {
+            background: var(--accent-color);
+            color: #0b0f19;
+            font-weight: 700;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .toggle-chat-btn:hover {
+            background: var(--accent-hover);
+            color: #ffffff;
+        }
+
+        /* Responsive 3-Column Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 280px 1fr 420px;
+            gap: 16px;
+            height: calc(100vh - 90px);
+        }
+
+        .workspace.chat-collapsed {
+            grid-template-columns: 300px 1fr;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Controls Left Panel */
+        .controls-scroll {
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--muted-text);
+            margin-bottom: 4px;
+            font-weight: 500;
+        }
+
+        select, input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 7px 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.85rem;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .section-label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--accent-color);
+            margin-top: 10px;
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+
+        button.endpoint-btn {
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 7px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: left;
+            font-size: 0.8rem;
+            transition: all 0.15s ease;
+        }
+
+        button.endpoint-btn:hover {
+            border-color: var(--accent-color);
+            background: #273549;
+        }
+
+        button.primary {
+            background: var(--accent-color);
+            color: #0f172a;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+
+        button.primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Middle Console Panel */
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        #json-output {
+            background: #030712;
+            color: #38bdf8;
+            padding: 14px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+            font-size: 0.82rem;
+            white-space: pre-wrap;
+            word-break: break-word;
+            flex: 1;
+            overflow-y: auto;
+            margin: 0;
+        }
+
+        /* Right Chatbot Assistant Panel */
+        .chat-panel {
+            display: flex;
+            flex-direction: column;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 10px 14px;
+            background: rgba(17, 24, 39, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .active-dataset-pill {
+            font-size: 0.72rem;
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        .quick-actions-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 12px;
+            background: #0f172a;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .action-chip {
+            background: #1e293b;
+            color: #cbd5e1;
+            border: 1px solid #334155;
+            font-size: 0.72rem;
+            padding: 4px 10px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .action-chip:hover {
+            background: var(--accent-color);
+            color: #0f172a;
+            border-color: var(--accent-color);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg-bubble {
+            max-width: 92%;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .msg-user {
+            align-self: flex-end;
+            background: var(--user-bubble-bg);
+            color: #ffffff;
+            border-bottom-right-radius: 2px;
+        }
+
+        .msg-ai {
+            align-self: flex-start;
+            background: var(--ai-bubble-bg);
+            color: var(--text-color);
+            border: 1px solid #334155;
+            border-bottom-left-radius: 2px;
+        }
+
+        .msg-ai h1, .msg-ai h2, .msg-ai h3 {
+            color: var(--accent-color);
+            margin: 8px 0 4px 0;
+            font-size: 1rem;
+        }
+
+        .msg-ai table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 0.78rem;
+        }
+
+        .msg-ai th, .msg-ai td {
+            border: 1px solid #334155;
+            padding: 5px 8px;
+            text-align: left;
+        }
+
+        .msg-ai th {
+            background: #1e293b;
+            color: var(--accent-color);
+        }
+
+        .msg-ai pre {
+            background: #020617;
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 0.78rem;
+        }
+
+        .msg-ai code {
+            background: #0f172a;
+            color: #38bdf8;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        /* Diff & Proposal Card */
+        .diff-card {
+            background: #0f172a;
+            border: 1px solid #38bdf8;
+            border-radius: 6px;
+            padding: 10px;
+            margin: 8px 0;
+        }
+
+        .diff-header {
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .diff-view {
+            background: #020617;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            color: #cbd5e1;
+        }
+
+        .diff-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-apply {
+            background: var(--success-color);
+            color: #ffffff;
+            font-weight: 600;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+        }
+
+        .btn-cancel {
+            background: #374151;
+            color: #ffffff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+        }
+
+        .btn-apply:hover { background: #059669; }
+        .btn-cancel:hover { background: #4b5563; }
+
+        /* Chart container in chat */
+        .chat-chart-box {
+            width: 100%;
+            height: 260px;
+            background: #0f172a;
+            border-radius: 6px;
+            border: 1px solid #334155;
+            margin-top: 8px;
+        }
+
+        /* Chat Input Form */
+        .chat-input-area {
+            padding: 10px;
+            background: rgba(17, 24, 39, 0.95);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 8px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 9px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            resize: none;
+            height: 38px;
+            box-sizing: border-box;
+        }
+
+        .chat-send-btn {
+            background: var(--accent-color);
+            color: #0b0f19;
+            font-weight: bold;
+            border: none;
+            padding: 0 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .chat-send-btn:hover {
+            background: var(--accent-hover);
+            color: #ffffff;
+        }
+
+        .chat-send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 1080px) {
+            .workspace {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .chat-panel {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-title">
+            <h1>Automated Insight Analyst</h1>
+            <span style="color: var(--muted-text); font-size: 0.85rem;">Integrated AI Data Analyst & Developer Platform</span>
+        </div>
+        <div class="header-actions">
+            <span id="platform-badge" class="badge">AI Assistant & Person 2 Active</span>
+            <button class="toggle-chat-btn" onclick="toggleChatPanel()">
+                💬 <span id="toggle-chat-label">Hide AI Assistant</span>
+            </button>
+        </div>
+    </header>
+
+    <div class="workspace" id="workspace-grid">
+        <!-- 1. Controls & Endpoints Panel -->
+        <div class="panel">
+            <div class="controls-scroll">
+                <div class="form-group">
+                    <label for="file-upload">Upload Dataset (CSV / Excel)</label>
+                    <input type="file" id="file-upload" accept=".csv, .xlsx" />
+                    <button class="primary" style="width: 100%; margin-top: 6px; text-align: center;" onclick="uploadFile()">POST /upload</button>
+                </div>
+
+                <hr style="border-color: var(--border-color); margin: 12px 0;">
+
+                <div class="form-group">
+                    <label for="dataset-select">Active Dataset Context</label>
+                    <select id="dataset-select" onchange="updateDatasetId()">
+                        <option value="test-sales">test-sales (Sales Benchmark)</option>
+                        <option value="test-payment">test-payment (Payment Benchmark)</option>
+                        <option value="test-marketing">test-marketing (Marketing Benchmark)</option>
+                        <option value="test-healthcare">test-healthcare (Healthcare Benchmark)</option>
+                        <option value="test-unseen_tabular">test-unseen_tabular (Random Tabular)</option>
+                        <option value="test-no_dates">test-no_dates (No Datetime)</option>
+                        <option value="test-insufficient_numerics">test-insufficient_numerics</option>
+                        <option value="test-missing_values">test-missing_values (High NaN)</option>
+                        <option value="test-outliers">test-outliers (High Outliers)</option>
+                        <option value="test-unsuitable_clustering">test-unsuitable_clustering</option>
+                        <option value="test-unsuitable_prediction">test-unsuitable_prediction</option>
+                    </select>
+                </div>
+
+                <div class="btn-group">
+                    <div class="section-label">Person 1: Data Processing & Analysis</div>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/overview')">GET /overview</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/schema')">GET /schema</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/cleaning-report')">GET /cleaning-report</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/analysis')">GET /analysis</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/correlations')">GET /correlations</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/outliers')">GET /outliers</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/visualizations')">GET /visualizations</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/insights')">GET /insights</button>
+                    <button class="endpoint-btn" onclick="window.open('/dataset/' + currentId + '/export?format=csv')">GET /export (CSV)</button>
+                    <button class="endpoint-btn" onclick="window.open('/dataset/' + currentId + '/export?format=xlsx')">GET /export (XLSX)</button>
+                    <button class="endpoint-btn" onclick="callApi('/health')">GET /health</button>
+
+                    <div class="section-label">Person 2 Analytical Modules</div>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/clusters')">GET /clusters (V1)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/predictions')">GET /predictions (V2)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/charts')">GET /charts (V3)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/chart-options')">GET /chart-options (V3)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/domain')">GET /domain (V4)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/payment-analytics')">GET /payment-analytics (V4)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/changes')">GET /changes (V4)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/summary')">GET /summary (V5)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/notifications')">GET /notifications (V5)</button>
+                    <button class="endpoint-btn" onclick="callApi('/dataset/' + currentId + '/data-quality')">GET /data-quality (V5)</button>
+                    
+                    <div class="section-label">Master Aggregation</div>
+                    <button class="primary" style="margin-top: 4px;" onclick="callApi('/dataset/' + currentId + '/dashboard')">GET /dashboard (V3 Master)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Middle Developer Console Panel -->
+        <div class="panel">
+            <div class="console-header">
+                <div>Endpoint: <span id="active-endpoint" style="color: var(--accent-color); font-weight: 600;">GET /dataset/test-sales/dashboard</span></div>
+                <div id="response-status" style="color: var(--success-color); font-weight: 600; font-size: 0.8rem;">Ready</div>
+            </div>
+            <pre id="json-output">Select an endpoint button on the left or chat with the AI assistant on the right...</pre>
+        </div>
+
+        <!-- 3. Right AI Assistant & Chatbot Panel -->
+        <div class="chat-panel" id="chat-panel">
+            <div class="chat-header">
+                <div class="chat-title">
+                    ✨ AI Analyst
+                    <span id="chat-dataset-badge" class="active-dataset-pill">test-sales</span>
+                </div>
+                <button onclick="clearChat()" style="background: none; border: 1px solid #334155; color: var(--muted-text); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">Clear</button>
+            </div>
+
+            <div class="quick-actions-bar">
+                <div class="action-chip" onclick="sendQuickMessage('Summarize this dataset')">📊 Summarize</div>
+                <div class="action-chip" onclick="sendQuickMessage('What are the key findings?')">🔍 Key Insights</div>
+                <div class="action-chip" onclick="sendQuickMessage('Recommend a chart for this data')">📈 Charts</div>
+                <div class="action-chip" onclick="sendQuickMessage('Check data quality and missing values')">⚠️ Quality</div>
+                <div class="action-chip" onclick="sendQuickMessage('Which variables are strongly correlated?')">🔗 Correlations</div>
+                <div class="action-chip" onclick="sendQuickMessage('Generate a full report for this dataset')">📑 Full Report</div>
+                <div class="action-chip" onclick="sendQuickMessage('Explain how the upload API works')">📂 Upload Code</div>
+                <div class="action-chip" onclick="sendQuickMessage('List all project files')">📁 Files</div>
+            </div>
+
+            <div class="chat-messages" id="chat-messages">
+                <div class="msg-bubble msg-ai">
+                    👋 <strong>Hello! I am your AI Data Analyst & Assistant.</strong><br>
+                    I understand your active dataset (<strong><span class="active-ds-label">test-sales</span></strong>) and all application files.<br><br>
+                    Ask me data questions, request visualizations, ask about code, or request controlled file modifications!
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <textarea 
+                    id="chat-input" 
+                    class="chat-input" 
+                    placeholder="Ask a question or request a change (e.g. 'Show sales by month', 'What is average age?')..."
+                    onkeydown="handleChatKey(event)"
+                ></textarea>
+                <button id="chat-send-btn" class="chat-send-btn" onclick="sendUserMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentId = "test-sales";
+        let conversationHistory = [];
+        let chatPanelOpen = true;
+
+        function updateDatasetId() {
+            currentId = document.getElementById("dataset-select").value;
+            const badge = document.getElementById("chat-dataset-badge");
+            if (badge) badge.innerText = currentId;
+            document.querySelectorAll(".active-ds-label").forEach(el => el.innerText = currentId);
+        }
+
+        function toggleChatPanel() {
+            const grid = document.getElementById("workspace-grid");
+            const panel = document.getElementById("chat-panel");
+            const label = document.getElementById("toggle-chat-label");
+            chatPanelOpen = !chatPanelOpen;
+
+            if (chatPanelOpen) {
+                grid.classList.remove("chat-collapsed");
+                panel.style.display = "flex";
+                label.innerText = "Hide AI Assistant";
+            } else {
+                grid.classList.add("chat-collapsed");
+                panel.style.display = "none";
+                label.innerText = "Show AI Assistant";
+            }
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById("file-upload");
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert("Please select a file to upload.");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+
+            document.getElementById("active-endpoint").innerText = "POST /upload";
+            document.getElementById("response-status").innerText = "Uploading...";
+
+            try {
+                const res = await fetch("/upload", { method: "POST", body: formData });
+                const data = await res.json();
+                document.getElementById("json-output").innerText = JSON.stringify(data, null, 2);
+                document.getElementById("response-status").innerText = res.ok ? "HTTP " + res.status : "Error " + res.status;
+                
+                if (data.dataset_id) {
+                    currentId = data.dataset_id;
+                    const select = document.getElementById("dataset-select");
+                    const opt = document.createElement("option");
+                    opt.value = data.dataset_id;
+                    opt.innerText = "uploaded: " + data.dataset_id;
+                    select.appendChild(opt);
+                    select.value = data.dataset_id;
+                    updateDatasetId();
+
+                    appendAiMessage(`✅ Successfully uploaded dataset **\`${data.dataset_id}\`**! I am now ready to analyze it. Try asking *"Summarize this dataset"* or *"Check data quality"*.`);
+                }
+            } catch (err) {
+                document.getElementById("json-output").innerText = "Error uploading file: " + err.message;
+                document.getElementById("response-status").innerText = "Failed";
+            }
+        }
+
+        async function callApi(endpoint) {
+            document.getElementById("active-endpoint").innerText = endpoint;
+            document.getElementById("response-status").innerText = "Fetching...";
+
+            try {
+                const res = await fetch(endpoint);
+                const data = await res.json();
+                document.getElementById("json-output").innerText = JSON.stringify(data, null, 2);
+                document.getElementById("response-status").innerText = res.ok ? "HTTP " + res.status + " OK" : "HTTP " + res.status;
+            } catch (err) {
+                document.getElementById("json-output").innerText = "Request failed: " + err.message;
+                document.getElementById("response-status").innerText = "Error";
+            }
+        }
+
+        /* CHATBOT FUNCTIONALITY */
+
+        function handleChatKey(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendUserMessage();
+            }
+        }
+
+        function sendQuickMessage(text) {
+            const input = document.getElementById("chat-input");
+            input.value = text;
+            sendUserMessage();
+        }
+
+        function appendUserMessage(text) {
+            const container = document.getElementById("chat-messages");
+            const div = document.createElement("div");
+            div.className = "msg-bubble msg-user";
+            div.innerText = text;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendAiMessage(htmlContent) {
+            const container = document.getElementById("chat-messages");
+            const div = document.createElement("div");
+            div.className = "msg-bubble msg-ai";
+            div.innerHTML = htmlContent;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return div;
+        }
+
+        function clearChat() {
+            conversationHistory = [];
+            const container = document.getElementById("chat-messages");
+            container.innerHTML = `
+                <div class="msg-bubble msg-ai">
+                    Conversation cleared. How can I assist you with dataset <strong>${currentId}</strong> or application files?
+                </div>
+            `;
+        }
+
+        // Lightweight Markdown to HTML renderer
+        function renderMarkdown(md) {
+            if (!md) return "";
+            let html = md
+                .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/gim, '<em>$1</em>')
+                .replace(/`([^`]+)`/gim, '<code>$1</code>')
+                .replace(/\n\n/gim, '<br><br>')
+                .replace(/\n/gim, '<br>');
+
+            // Table rendering parser
+            if (html.includes('|')) {
+                const lines = md.split('\n');
+                let inTable = false;
+                let tableHtml = '<table border="1">';
+                for (let line of lines) {
+                    if (line.trim().startsWith('|') && line.trim().endsWith('|')) {
+                        if (line.includes('---')) continue;
+                        inTable = true;
+                        const cells = line.split('|').slice(1, -1).map(c => c.trim());
+                        tableHtml += '<tr>' + cells.map(c => `<td>${c}</td>`).join('') + '</tr>';
+                    } else if (inTable) {
+                        inTable = false;
+                        tableHtml += '</table>';
+                    }
+                }
+                if (inTable) tableHtml += '</table>';
+                if (tableHtml.includes('<tr>')) {
+                    html = tableHtml;
+                }
+            }
+
+            return html;
+        }
+
+        async function sendUserMessage() {
+            const input = document.getElementById("chat-input");
+            const sendBtn = document.getElementById("chat-send-btn");
+            const text = input.value.trim();
+            if (!text) return;
+
+            appendUserMessage(text);
+            input.value = "";
+            sendBtn.disabled = true;
+            sendBtn.innerText = "...";
+
+            // Add typing indicator
+            const typingBubble = appendAiMessage("<em>Analyzing request...</em>");
+
+            try {
+                const res = await fetch("/chat/message", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: text,
+                        dataset_id: currentId,
+                        history: conversationHistory
+                    })
+                });
+
+                const data = await res.json();
+                typingBubble.remove();
+
+                if (!res.ok) {
+                    appendAiMessage(`⚠️ **Error**: ${data.detail || "Failed to process chat request."}`);
+                    return;
+                }
+
+                conversationHistory.push({ role: "user", content: text });
+                conversationHistory.push({ role: "assistant", content: data.message || "" });
+                if (conversationHistory.length > 8) conversationHistory = conversationHistory.slice(-8);
+
+                let formattedHtml = renderMarkdown(data.message || "");
+
+                // Handle Code Edit Proposal
+                if (data.file_proposal) {
+                    const p = data.file_proposal;
+                    formattedHtml += `
+                        <div class="diff-card" id="proposal-${p.proposal_id}">
+                            <div class="diff-header">
+                                <span>TARGET FILE: ${p.file_path}</span>
+                                <span style="color: #fbbf24;">Pending User Approval</span>
+                            </div>
+                            <div style="font-size: 0.78rem; margin-bottom: 6px; color: var(--muted-text);">${p.summary}</div>
+                            <div class="diff-view">${p.diff.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+                            <div class="diff-actions">
+                                <button class="btn-apply" onclick="applyEdit('${p.proposal_id}')">Apply Changes</button>
+                                <button class="btn-cancel" onclick="cancelEdit('${p.proposal_id}')">Cancel</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Handle Interactive Chart
+                const chartDivId = "chart-" + Date.now();
+                if (data.chart && data.chart.data) {
+                    formattedHtml += `<div id="${chartDivId}" class="chat-chart-box"></div>`;
+                }
+
+                const msgEl = appendAiMessage(formattedHtml);
+
+                // Render Plotly chart if present
+                if (data.chart && data.chart.data && window.Plotly) {
+                    renderPlotlyChart(chartDivId, data.chart);
+                }
+
+            } catch (err) {
+                typingBubble.remove();
+                appendAiMessage(`⚠️ **Connection Error**: ${err.message}`);
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.innerText = "Send";
+            }
+        }
+
+        function renderPlotlyChart(containerId, chartConfig) {
+            const chartData = chartConfig.data || [];
+            const type = chartConfig.type || "bar";
+            const xVals = chartData.map(d => d.x);
+            const yVals = chartData.map(d => d.y);
+
+            let trace = {};
+            if (type === "line") {
+                trace = { x: xVals, y: yVals, type: 'scatter', mode: 'lines+markers', line: { color: '#38bdf8', width: 2 } };
+            } else if (type === "donut" || type === "pie") {
+                trace = { labels: xVals, values: yVals, type: 'pie', hole: 0.4 };
+            } else {
+                trace = { x: xVals, y: yVals, type: 'bar', marker: { color: '#38bdf8' } };
+            }
+
+            const layout = {
+                title: { text: chartConfig.title || "Visualization", font: { color: '#f8fafc', size: 13 } },
+                paper_bgcolor: '#0f172a',
+                plot_bgcolor: '#0f172a',
+                margin: { t: 35, b: 35, l: 45, r: 20 },
+                xaxis: { color: '#94a3b8', gridcolor: '#1e293b' },
+                yaxis: { color: '#94a3b8', gridcolor: '#1e293b' },
+                font: { color: '#cbd5e1', size: 10 }
+            };
+
+            Plotly.newPlot(containerId, [trace], layout, { responsive: true, displayModeBar: false });
+        }
+
+        async function applyEdit(proposalId) {
+            const card = document.getElementById("proposal-" + proposalId);
+            if (card) {
+                card.innerHTML = `<div style="color: #38bdf8; font-size: 0.8rem;">Applying modification and running syntax validation...</div>`;
+            }
+
+            try {
+                const res = await fetch("/chat/apply-edit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ proposal_id: proposalId })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    if (card) {
+                        card.innerHTML = `
+                            <div style="color: #10b981; font-size: 0.85rem; font-weight: bold;">
+                                ✅ Changes successfully applied to <code>${data.file_path}</code>!
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--muted-text); margin-top: 4px;">
+                                Backup preserved: <code>${data.backup_file}</code>
+                            </div>
+                        `;
+                    }
+                } else {
+                    if (card) {
+                        card.innerHTML = `<div style="color: #ef4444; font-size: 0.85rem;">⚠️ ${data.detail || "Edit failed validation."}</div>`;
+                    }
+                }
+            } catch (err) {
+                if (card) {
+                    card.innerHTML = `<div style="color: #ef4444; font-size: 0.85rem;">⚠️ Request failed: ${err.message}</div>`;
+                }
+            }
+        }
+
+        async function cancelEdit(proposalId) {
+            const card = document.getElementById("proposal-" + proposalId);
+            try {
+                await fetch("/chat/cancel-edit", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ proposal_id: proposalId })
+                });
+                if (card) {
+                    card.innerHTML = `<div style="color: var(--muted-text); font-size: 0.8rem;">❌ Edit proposal cancelled.</div>`;
+                }
+            } catch (err) {
+                if (card) card.remove();
+            }
+        }
+    </script>
+</body>
+</html>

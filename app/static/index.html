@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intelligent Data Analysis Platform | v6.0 Advanced Engine</title>
+  <meta name="description" content="Automated dataset ingestion, column-type detection, cleaning, statistics, correlations, outlier analysis, chart visualizations, executive insights, and clean export.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-badge">P1</div>
+        <div class="brand-text">
+          <h1>DataEngine <span>v6.0</span></h1>
+          <p>Automated Tabular Processing, Insights & Visualizations</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div class="api-status-pill" id="apiStatusBadge">
+          <span class="status-dot"></span>
+          <span id="apiStatusText">Connecting...</span>
+        </div>
+        <button class="btn btn-secondary" id="demoDataBtn" title="Load sample dirty e-commerce dataset for instant evaluation">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Load Demo Dataset
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Pipeline Stepper Ribbon -->
+  <section class="pipeline-ribbon">
+    <div class="step-ribbon-item active" data-step="1">
+      <span class="step-num">1</span>
+      <span class="step-label">Upload</span>
+    </div>
+    <div class="step-ribbon-item" data-step="2">
+      <span class="step-num">2</span>
+      <span class="step-label">Overview</span>
+    </div>
+    <div class="step-ribbon-item" data-step="3">
+      <span class="step-num">3</span>
+      <span class="step-label">Schema</span>
+    </div>
+    <div class="step-ribbon-item" data-step="4">
+      <span class="step-num">4</span>
+      <span class="step-label">Cleaning</span>
+    </div>
+    <div class="step-ribbon-item" data-step="5">
+      <span class="step-num">5</span>
+      <span class="step-label">Statistics</span>
+    </div>
+    <div class="step-ribbon-item" data-step="6">
+      <span class="step-num">6</span>
+      <span class="step-label">Correlations</span>
+    </div>
+    <div class="step-ribbon-item" data-step="7">
+      <span class="step-num">7</span>
+      <span class="step-label">Outliers</span>
+    </div>
+    <div class="step-ribbon-item" data-step="8">
+      <span class="step-num">8</span>
+      <span class="step-label">Insights</span>
+    </div>
+    <div class="step-ribbon-item" data-step="9">
+      <span class="step-num">9</span>
+      <span class="step-label">Visualizations</span>
+    </div>
+  </section>
+
+  <!-- Main Container -->
+  <main class="main-container">
+    <!-- Upload Section -->
+    <section class="card upload-card" id="uploadCard">
+      <div class="upload-dropzone" id="dropzone">
+        <input type="file" id="fileInput" accept=".csv, .xlsx, .xls" hidden>
+        <div class="upload-icon-wrapper">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 12 15 15"/></svg>
+        </div>
+        <h3>Drag & Drop Dataset Here</h3>
+        <p>Supports <strong>.csv</strong>, <strong>.xlsx</strong>, and <strong>.xls</strong> up to 2GB</p>
+        <button class="btn btn-primary" id="browseBtn">Select File from Computer</button>
+      </div>
+
+      <div class="upload-progress-box hidden" id="uploadProgressBox">
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="uploadProgressBar"></div>
+        </div>
+        <p class="progress-text" id="uploadProgressText">Uploading and parsing dataset...</p>
+      </div>
+
+      <div class="alert-box error hidden" id="uploadErrorAlert"></div>
+    </section>
+
+    <!-- Active Dataset Bar with Export Options -->
+    <section class="active-dataset-bar hidden" id="activeDatasetBar">
+      <div class="dataset-meta-info">
+        <div class="meta-icon">📊</div>
+        <div>
+          <h2 id="activeDatasetFilename">dataset.csv</h2>
+          <span class="dataset-id-tag" id="activeDatasetId">UUID</span>
+        </div>
+      </div>
+      <div class="dataset-bar-stats">
+        <span class="bar-stat-pill"><strong id="barRowCount">-</strong> rows</span>
+        <span class="bar-stat-pill"><strong id="barColCount">-</strong> cols</span>
+        <span class="bar-stat-pill"><strong id="barMissingCount">-</strong> nulls</span>
+        <button class="btn btn-sm btn-outline" id="recleanBtn" title="Force reclean raw dataset">Re-run Cleaning</button>
+        <div class="export-btn-group">
+          <button class="btn btn-sm btn-export" id="exportCsvBtn" title="Download cleaned CSV">📥 Clean CSV</button>
+          <button class="btn btn-sm btn-export" id="exportXlsxBtn" title="Download cleaned Excel XLSX">📥 Clean Excel</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Analysis Dashboard Tabs -->
+    <section class="dashboard-section hidden" id="dashboardSection">
+      <nav class="tabs-nav" role="tablist">
+        <button class="tab-btn active" data-tab="tab-overview">Overview</button>
+        <button class="tab-btn" data-tab="tab-schema">Column Types</button>
+        <button class="tab-btn" data-tab="tab-cleaning">Cleaning Report</button>
+        <button class="tab-btn" data-tab="tab-statistics">Statistical Analysis</button>
+        <button class="tab-btn" data-tab="tab-correlations">Correlations</button>
+        <button class="tab-btn" data-tab="tab-outliers">Outlier Detection</button>
+        <button class="tab-btn tab-highlight" data-tab="tab-insights">Executive Insights (v6)</button>
+        <button class="tab-btn tab-highlight" data-tab="tab-visualizations">Visualizations (v6)</button>
+      </nav>
+
+      <!-- TAB 1: Overview -->
+      <div class="tab-content active" id="tab-overview">
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Total Rows</span>
+            <span class="kpi-value" id="kpiRows">-</span>
+            <span class="kpi-subtitle">Observations</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Total Columns</span>
+            <span class="kpi-value" id="kpiCols">-</span>
+            <span class="kpi-subtitle">Attributes</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Missing Cells</span>
+            <span class="kpi-value" id="kpiMissing">-</span>
+            <span class="kpi-subtitle">Total null/empty values</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Duplicate Rows</span>
+            <span class="kpi-value" id="kpiDuplicates">-</span>
+            <span class="kpi-subtitle">Exact identical rows</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Memory Footprint</span>
+            <span class="kpi-value" id="kpiMemory">-</span>
+            <span class="kpi-subtitle">Dataset memory size</span>
+          </div>
+        </div>
+
+        <div class="card content-card">
+          <div class="card-header-flex">
+            <h3>Sample Preview Rows</h3>
+            <span class="badge badge-info">Top 5 Records</span>
+          </div>
+          <div class="table-responsive" id="previewTableContainer">
+            <div class="spinner-container"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: Schema Detection -->
+      <div class="tab-content" id="tab-schema">
+        <div class="card content-card">
+          <div class="card-header-flex">
+            <div>
+              <h3>Intelligent Column Classification</h3>
+              <p class="section-desc">Classified automatically without relying on hard-coded column names.</p>
+            </div>
+            <div class="type-legend">
+              <span class="type-pill type-numeric">Numeric</span>
+              <span class="type-pill type-categorical">Categorical</span>
+              <span class="type-pill type-datetime">DateTime</span>
+              <span class="type-pill type-text">Text</span>
+              <span class="type-pill type-identifier">Identifier</span>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table" id="schemaTable">
+              <thead>
+                <tr>
+                  <th>Column Name</th>
+                  <th>Detected Type</th>
+                  <th>Confidence</th>
+                  <th>Underlying Dtype</th>
+                  <th>Unique Values</th>
+                  <th>Null Values</th>
+                </tr>
+              </thead>
+              <tbody id="schemaTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Data Cleaning Report -->
+      <div class="tab-content" id="tab-cleaning">
+        <div class="kpi-grid cleaning-kpi-grid">
+          <div class="kpi-card">
+            <span class="kpi-title">Rows After Cleaning</span>
+            <span class="kpi-value highlight-green" id="cleanRowsCount">-</span>
+            <span class="kpi-subtitle" id="cleanOriginalRows">Orig: -</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Duplicates Removed</span>
+            <span class="kpi-value" id="cleanDuplicatesCount">-</span>
+            <span class="kpi-subtitle">Exact matches pruned</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Missing Handled</span>
+            <span class="kpi-value" id="cleanMissingHandled">-</span>
+            <span class="kpi-subtitle">Imputed via Median/Mode</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Numeric & Currency</span>
+            <span class="kpi-value" id="cleanCurrencyCount">-</span>
+            <span class="kpi-subtitle">Symbols stripped & formatted</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Categories Unified</span>
+            <span class="kpi-value" id="cleanCasingCount">-</span>
+            <span class="kpi-subtitle">Casing & whitespace standardized</span>
+          </div>
+          <div class="kpi-card">
+            <span class="kpi-title">Dates Normalized</span>
+            <span class="kpi-value" id="cleanDateCount">-</span>
+            <span class="kpi-subtitle">Formatted to ISO 8601</span>
+          </div>
+        </div>
+
+        <div class="alerts-container" id="cleaningAlertsContainer"></div>
+
+        <div class="card content-card">
+          <h3>Transformation Audit Trail</h3>
+          <div class="table-responsive">
+            <table class="data-table" id="cleaningOperationsTable">
+              <thead>
+                <tr>
+                  <th>Operation</th>
+                  <th>Target Column</th>
+                  <th>Affected Rows</th>
+                  <th>Technique</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="cleaningOperationsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 4: Statistical Analysis -->
+      <div class="tab-content" id="tab-statistics">
+        <div class="filter-bar">
+          <label>Filter By Type:</label>
+          <div class="btn-group" id="statsFilterGroup">
+            <button class="btn btn-sm btn-filter active" data-filter="all">All</button>
+            <button class="btn btn-sm btn-filter" data-filter="numeric">Numeric</button>
+            <button class="btn btn-sm btn-filter" data-filter="categorical">Categorical</button>
+            <button class="btn btn-sm btn-filter" data-filter="datetime">DateTime</button>
+            <button class="btn btn-sm btn-filter" data-filter="text">Text & ID</button>
+          </div>
+        </div>
+
+        <div class="stats-cards-grid" id="statsCardsGrid">
+          <div class="spinner-container"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- TAB 5: Correlations -->
+      <div class="tab-content" id="tab-correlations">
+        <div class="card content-card">
+          <div class="card-header-flex">
+            <div>
+              <h3>Numerical Correlation Matrix</h3>
+              <p class="section-desc">Identifies linear and monotonic dependencies across continuous features.</p>
+            </div>
+            <div class="method-selector">
+              <label for="corrMethodSelect">Method:</label>
+              <select id="corrMethodSelect" class="form-select">
+                <option value="pearson" selected>Pearson (Linear)</option>
+                <option value="spearman">Spearman (Rank Monotonic)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive" id="corrMatrixContainer">
+            <div class="spinner-container"><div class="spinner"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-2-col">
+          <div class="card content-card">
+            <h4 class="card-subtitle-flex">
+              <span class="indicator-dot green"></span> Strong Positive Associations (r ≥ 0.60)
+            </h4>
+            <div id="strongPositiveContainer" class="relationships-list"></div>
+          </div>
+          <div class="card content-card">
+            <h4 class="card-subtitle-flex">
+              <span class="indicator-dot red"></span> Strong Negative Associations (r ≤ -0.60)
+            </h4>
+            <div id="strongNegativeContainer" class="relationships-list"></div>
+          </div>
+        </div>
+
+        <div class="card content-card">
+          <h3>Ranked Significant Variable Pairs</h3>
+          <div class="table-responsive">
+            <table class="data-table" id="corrPairsTable">
+              <thead>
+                <tr>
+                  <th>Variable 1</th>
+                  <th>Variable 2</th>
+                  <th>Correlation (r)</th>
+                  <th>Direction</th>
+                  <th>Strength</th>
+                </tr>
+              </thead>
+              <tbody id="corrPairsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 6: Outlier Analysis -->
+      <div class="tab-content" id="tab-outliers">
+        <div class="card outlier-summary-banner">
+          <div class="summary-metric">
+            <span class="label">Total Outlier Data Points</span>
+            <span class="val" id="outlierTotalPoints">-</span>
+          </div>
+          <div class="summary-metric">
+            <span class="label">Rows With Outliers</span>
+            <span class="val" id="outlierRowsCount">-</span>
+          </div>
+          <div class="summary-metric">
+            <span class="label">Dataset Contamination</span>
+            <span class="val" id="outlierPct">-</span>
+          </div>
+          <div class="summary-metric">
+            <span class="label">Detection Method</span>
+            <div class="btn-group">
+              <button class="btn btn-sm btn-outline active" data-outlier-method="all">All</button>
+              <button class="btn btn-sm btn-outline" data-outlier-method="iqr">IQR</button>
+              <button class="btn btn-sm btn-outline" data-outlier-method="zscore">Z-Score</button>
+              <button class="btn btn-sm btn-outline" data-outlier-method="isolation_forest">Iso Forest</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="outliers-grid" id="outliersCardsGrid">
+          <div class="spinner-container"><div class="spinner"></div></div>
+        </div>
+      </div>
+
+      <!-- TAB 7: Executive Insights (NEW v6) -->
+      <div class="tab-content" id="tab-insights">
+        <div class="insights-banner-card card">
+          <div class="quality-gauge-wrapper">
+            <div class="quality-circle" id="qualityScoreCircle">
+              <span class="quality-number" id="qualityOverallScore">-</span>
+              <span class="quality-grade" id="qualityGrade">-</span>
+            </div>
+            <div class="quality-text">
+              <h3>Data Quality Health Score</h3>
+              <p class="section-desc">Composite rating based on completeness, uniqueness, consistency, and validity.</p>
+              <div class="sub-scores-row">
+                <span class="sub-score-item">Completeness: <strong id="scoreCompleteness">-</strong>/100</span>
+                <span class="sub-score-item">Uniqueness: <strong id="scoreUniqueness">-</strong>/100</span>
+                <span class="sub-score-item">Validity: <strong id="scoreValidity">-</strong>/100</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2-col">
+          <div class="card content-card">
+            <h3>Key Analytical Discoveries</h3>
+            <div class="findings-list" id="findingsListContainer">
+              <div class="spinner-container"><div class="spinner"></div></div>
+            </div>
+          </div>
+          <div class="card content-card">
+            <h3>Actionable Recommendations</h3>
+            <ul class="recommendations-list" id="recommendationsListContainer">
+              <div class="spinner-container"><div class="spinner"></div></div>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 8: Visualizations (NEW v6) -->
+      <div class="tab-content" id="tab-visualizations">
+        <div class="visualizations-grid" id="visualizationsGrid">
+          <div class="spinner-container"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <p>Data Processing, Analytics, Insights & Visualization Platform — v6.0 Advanced Suite</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
